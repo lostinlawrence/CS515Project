@@ -1,0 +1,44 @@
+{
+    "start": "Living Room",
+    "rooms": [
+        {
+            "name": "Living Room",
+            "desc": "This is the living room",
+            "exits": {
+                "east": "Bedroom",
+                "west": "Kitchen"
+            },
+            "items": [
+                "newspaper"
+            ]
+        },
+        {
+            "name": "Bedroom",
+            "desc": "This is the bedroom.",
+            "exits": {
+                "west": "Living Room",
+                "north": "Bathroom"
+            }
+        },
+        {
+            "name": "Bathroom",
+            "desc": "This is the bathroom.",
+            "exits": {
+                "south": "Bedroom"
+            },
+            "items": [
+                "food"
+            ]
+        },
+        {
+            "name": "Kitchen",
+            "desc": "This is the kitchen.",
+            "exits": {
+                "east": "Living Room"
+            },
+            "items": [
+                "pillow"
+            ]
+        }
+    ]
+}
