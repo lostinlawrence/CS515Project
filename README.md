@@ -1,10 +1,16 @@
 # CS515Project
 This is the adventure project for CS515 at Stevens Institute of Technology
+
 Name: Chunlin Ruan
+
 Stevens Log In: cruan2@stevens.edu
+
 GitHub URL: https://github.com/lostinlawrence/CS515Project.git
+
 Total Hours Spent: About 10 Hours
+
 How I Tested My Code: I used all the inputs posted on Adventure description on Canvas and make sure the all the outputs match.
+
 Bug or Issues: 
 1 The most challenging part of the project is how to organize all these methods and classes. The project can be organized in many ways.
 
