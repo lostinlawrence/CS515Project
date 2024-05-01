@@ -1,3 +1,4 @@
+# version 1
 import sys
 import json
 
@@ -64,42 +65,49 @@ class GameState:
                 return room
         return None
 
-def resolve_command(abbreviation, options):
-    """Resolve command abbreviation with possible options."""
-    matches = [option for option in options if option.startswith(abbreviation)]
-    if len(matches) == 1:
-        return matches[0]
-    elif len(matches) > 1:
-        return f"Did you want to {' or '.join(matches)}?"
-    else:
-        return None
-
 def process_command(command, game_state):
+
+    # This is a dictionary of fuctions. When a verb or function is added, it should be added in the dictionary.
+    # Below there is a handle_help function that will print all the keys of this dictionary.
+    function_dict = {"go":handle_go,"east":handle_direction,"west":handle_direction,
+                     "south":handle_direction,"north":handle_direction,"look":handle_look,
+                     "get":handle_get,"drop":handle_drop,"inventory":handle_inventory,"help":handle_help,
+                     "quit":None
+                     }
     words = command.strip().lower().split()
     if not words:
         return "You need to enter a command."
-    cmd = words[0]
-    full_cmd = resolve_command(cmd, function_dict.keys())
-    if full_cmd and full_cmd in function_dict:
-        return function_dict[full_cmd](words[1:], game_state)
-    elif "Did you want to" in full_cmd:
-        return full_cmd
-    else:
-        return "Unknown command."
 
-def handle_go(words, game_state):
-    if not words:
-        return "Sorry, you need to 'go' somewhere."
-    direction = words[0]
-    room = game_state.get_current_room()
-    resolved_direction = resolve_command(direction, room["exits"].keys())
-    if isinstance(resolved_direction, str) and resolved_direction in room["exits"]:
-        game_state.current_room = room["exits"][resolved_direction]
-        return f"You go {resolved_direction}.\n\n" + look(game_state)
-    elif "Did you want to" in resolved_direction:
-        return resolved_direction
+    cmd = words[0]
+    if cmd == "go":
+        return function_dict[cmd](words[1:], game_state)
+    elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
+        return function_dict[cmd](words[0], game_state)
+    elif cmd == "look":
+        return function_dict[cmd](game_state)
+    elif cmd == "get":
+        return function_dict[cmd](words[1:], game_state)
+    elif cmd == "drop":
+        return function_dict[cmd](words[1:], game_state)
+    elif cmd == "inventory":
+        return function_dict[cmd](game_state)
+    elif cmd == "help":
+        return function_dict[cmd](function_dict)
+    elif cmd == "quit":
+        sys.exit("Goodbye!")
     else:
-        return "There's no way to go that direction."
+        return "Use 'quit' to exit."
+
+def handle_go(direction, game_state):#direction is a list here with only one element
+    if len(direction) == 0:
+        return "Sorry, you need to 'go' somewhere."
+    room = game_state.get_current_room()
+    if direction[0] in room["exits"]:
+        game_state.current_room = room["exits"][direction[0]]
+        print(f"You go {direction[0]}.\n")
+        return look(game_state)
+    else:
+        return f"There's no way to go {direction[0]}."
 
 # This is an extension to convert direction to a verb.
 # This method take in directions including east, west, south and north
@@ -126,23 +134,17 @@ def look(game_state):
         return f"> {room['name']}\n\n{room['desc']}\n\nExits: {exits}\n"
 
 
-def handle_get(words, game_state):
-    if not words:
+def handle_get(items, game_state):#items here is a list
+    if not items:
         return "Sorry, you need to 'get' something."
-    item_query = words[0]
-    room = game_state.get_current_room()
-    items = room.get("items", [])
-    # Handle substring matching for items
-    matches = [item for item in items if item_query in item]
-    if len(matches) == 1:
-        item = matches[0]
+    item = items[0]# To take out the only element from list items and pass it to variable item
+    room = game_state.get_current_room()#room here is a dictionary
+    if "items" in room and item in room["items"]:
         room["items"].remove(item)
         game_state.inventory.append(item)
         return f"You pick up the {item}."
-    elif len(matches) > 1:
-        return f"Did you want to get the {' or the '.join(matches)}?"
     else:
-        return "There's no such item here."
+        return f"There's no {item} anywhere."
 
 # This is an extension to drop items.
 def handle_drop(items, game_state):
@@ -159,8 +161,7 @@ def handle_drop(items, game_state):
 
 def handle_inventory(game_state):
     if game_state.inventory:
-        inventory_list = '\n  '.join(game_state.inventory)
-        return f"Inventory:\n  {inventory_list}"
+        return "Inventory:\n  " + "\n  ".join(game_state.inventory)
     else:
         return "You're not carrying anything."
 
