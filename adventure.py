@@ -80,7 +80,7 @@ def process_command(command, game_state):
     cmd = words[0]
     if cmd == "go":
         return function_dict[cmd](words[1:], game_state)
-    elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north":
+    elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
         return function_dict[cmd](words[0], game_state)
     elif cmd == "look":
         return function_dict[cmd](game_state)
@@ -178,21 +178,21 @@ def handle_help(function_dict):
 def main():
     try:
         if len(sys.argv) != 2:
-            sys.exit("Usage: python3 adventure.py [map filename]")
-    
+            print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
+            return
+        
         game_map = load_map(sys.argv[1])
-
         game_state = GameState(game_map)
-        print(look(game_state))
-
+        output = look(game_state)
+        print(output)
+        
         while True:
             command = input("What would you like to do? ")
             output = process_command(command, game_state)
             print(output)
 
     except KeyboardInterrupt:
-        print("\nGame interrupted. Goodbye!")  # Not sure what to print when there is a KeyboardInterrupt
-        sys.exit(0) 
+        print("\nGame interrupted. Goodbye!")
 
 
 if __name__ == "__main__":
