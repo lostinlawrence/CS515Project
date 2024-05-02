@@ -1,69 +1,60 @@
+# version 3
 # version 2
 import sys
 import json
 
 def load_map(filename):
+    """Load the game map from a file and validate it."""
     try:
         with open(filename, 'r') as file:
             game_map = json.load(file)
         validate_map(game_map)
         return game_map
     except FileNotFoundError:
-        sys.exit("Error: Map file not found.")
+        print("Error: Map file not found.", file=sys.stderr)
+        sys.exit(1)
 
 def validate_map(game_map):
+    """Validate the structure and content of the game map."""
     if "start" not in game_map or "rooms" not in game_map:
-        sys.exit("Error: Map is missing required 'start' or 'rooms' keys.")
-    
-    if not isinstance(game_map["rooms"], list):
-        sys.exit("Error: 'rooms' must be a list.")
+        print("Error: Map is missing required 'start' or 'rooms' keys.", file=sys.stderr)
+        sys.exit(1)
     
     room_names = set()
-    
     for room in game_map["rooms"]:
-        # Check for the presence of necessary keys
         if "name" not in room or "desc" not in room or "exits" not in room:
-            sys.exit("Error: One or more rooms are missing 'name', 'desc', or 'exits'.")
-        
-        # Check for the correct data types
-        if not isinstance(room["name"], str):
-            sys.exit(f"Error: Room name must be a string, found {type(room['name'])}.")
-        if not isinstance(room["desc"], str):
-            sys.exit(f"Error: Room description must be a string, found {type(room['desc'])}.")
-        if not isinstance(room["exits"], dict):
-            sys.exit(f"Error: Room exits must be a dictionary, found {type(room['exits'])}.")
-
-        # Ensure unique room names
+            print("Error: One or more rooms are missing required fields.", file=sys.stderr)
+            sys.exit(1)
+        if not isinstance(room["name"], str) or not isinstance(room["desc"], str) or not isinstance(room["exits"], dict):
+            print("Error: Incorrect data types in room definitions.", file=sys.stderr)
+            sys.exit(1)
         if room["name"] in room_names:
-            sys.exit("Error: Duplicate room name found.")
+            print("Error: Duplicate room name found.", file=sys.stderr)
+            sys.exit(1)
         room_names.add(room["name"])
-        
-        # Check if all exits point to valid room names
-        for direction, exit_room in room["exits"].items():
-            if not isinstance(exit_room, str):
-                sys.exit(f"Error: Exit destination must be a string, found {type(exit_room)}.")
+        for exit_room in room["exits"].values():
             if exit_room not in room_names:
-                # To account for forward references, we validate all exits at the end.
+                # Allow forward references
                 continue
 
-    # Final check for exit validity to account for forward references
+    # Validate if all exits are correct at the end of the loop
     for room in game_map["rooms"]:
         for exit_room in room["exits"].values():
             if exit_room not in room_names:
-                sys.exit(f"Error: Exit '{exit_room}' points to a non-existing room.")
+                print(f"Error: Exit '{exit_room}' points to a non-existing room.", file=sys.stderr)
+                sys.exit(1)
 
 
 class GameState:
+    """Class to hold the state of the game."""
     def __init__(self, game_map):
         self.game_map = game_map
         self.current_room = game_map["start"]
         self.inventory = []
 
     def get_current_room(self):
-        for room in self.game_map["rooms"]:
-            if room["name"] == self.current_room:
-                return room
-        return None
+        """Retrieve the current room based on the player's location."""
+        return next((room for room in self.game_map["rooms"] if room["name"] == self.current_room), None)
 
 def process_command(command, game_state):
 
@@ -79,7 +70,10 @@ def process_command(command, game_state):
         return "You need to enter a command."
 
     cmd = words[0]
-    if cmd == "go":
+    if cmd == "quit":
+        print("Goodbye!")
+        sys.exit(0)
+    elif cmd == "go":
         return function_dict[cmd](words[1:], game_state)
     elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
         return function_dict[cmd](words[0], game_state)
@@ -92,11 +86,7 @@ def process_command(command, game_state):
     elif cmd == "inventory":
         return function_dict[cmd](game_state)
     elif cmd == "help":
-        return function_dict[cmd](function_dict)
-    elif cmd == "quit":
-        print("Goodbye!")  # Output goodbye message to STDOUT
-        sys.exit(0)  # Exit the program normally
-        
+        return function_dict[cmd](function_dict)       
     else:
         return "Use 'quit' to exit."
 
@@ -179,50 +169,22 @@ def handle_help(function_dict):
     return s
 
 def main():
-    try:
-        if len(sys.argv) != 2:
-            # print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
-            return
-        
-        game_map = load_map(sys.argv[1])
-#         game_map = { "start": "A white room",
-#   "rooms": [
-#             {"name": "A white room", "desc": "You are in a simple room with white walls.",
-#              "exits": { "north": "A blue room", "east": "A red room" }
-#             }
-#            ,
-#             {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
-#              "exits": { "east": "A green room", "south": "A white room" }
-#             }
-#            ,
-#             {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
-#              "exits": { "west": "A blue room", "south": "A red room" },
-#              "items": []
-#             }
-#            ,
-#             {"name": "A red room", "desc": "This room is fancy. It's red!",
-#              "exits": { "north": "A green room", "west": "A white room" },
-#              "items": ["rose"]
-#             }
-#            ]
-# }
-        game_state = GameState(game_map)
-        print(look(game_state))
-        
-        while True:
-            try:
-                command = input("What would you like to do? ")
-                if command == "":
-                    raise EOFError
-                output = process_command(command, game_state)
-                print(output)
-            except EOFError:
-                print("Use 'quit' to exit.")
-    except KeyboardInterrupt:
-        # print("\nGame interrupted.", file=sys.stderr)
-        # print("Goodbye!")  # Output goodbye message to STDOUT
-        sys.exit(0)  # Exit the program normally
-        
+    """Main game loop."""
+    if len(sys.argv) != 2:
+        print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
+        return
+    
+    game_map = load_map(sys.argv[1])
+    game_state = GameState(game_map)
+    print(look(game_state))
+    
+    while True:
+        try:
+            command = input("What would you like to do? ")
+            output = process_command(command, game_state)
+            print(output)
+        except EOFError:
+            print("Use 'quit' to exit.")
 
 if __name__ == "__main__":
     main()
