@@ -60,8 +60,7 @@ def process_command(command, game_state):
     # This is a dictionary of fuctions. When a verb or function is added, it should be added in the dictionary.
     # Below there is a handle_help function that will print all the keys of this dictionary.
     function_dict = {"go":handle_go,"east":handle_direction,"west":handle_direction,
-                     "south":handle_direction,"north":handle_direction,"southeast":handle_direction,"southwest":handle_direction,
-                     "northeast":handle_direction,"northwest":handle_direction,
+                     "south":handle_direction,"north":handle_direction,
                      "look":handle_look,
                      "get":handle_get,"drop":handle_drop,"inventory":handle_inventory,"help":handle_help,
                      "quit":None
