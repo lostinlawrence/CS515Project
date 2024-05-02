@@ -67,10 +67,10 @@ def process_command(command, game_state):
     words = command.strip().lower().split()
     if not words:
         return "You need to enter a command."
-
     cmd = words[0]
     if cmd == "quit":
-        return "quit"
+        print("Goodbye!")
+        sys.exit(0)
     elif cmd == "go":
         return function_dict[cmd](words[1:], game_state)
     elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
@@ -168,32 +168,32 @@ def handle_help(function_dict):
 
 def main():
     """Main game loop."""
-    # if len(sys.argv) != 2:
-    #     print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
-    #     return
+    if len(sys.argv) != 2:
+        print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
+        return
     
-    # game_map = load_map(sys.argv[1])
-    game_map = { "start": "A white room",
-  "rooms": [
-            {"name": "A white room", "desc": "You are in a simple room with white walls.",
-             "exits": { "north": "A blue room", "east": "A red room" }
-            }
-           ,
-            {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
-             "exits": { "east": "A green room", "south": "A white room" }
-            }
-           ,
-            {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
-             "exits": { "west": "A blue room", "south": "A red room" },
-             "items": []
-            }
-           ,
-            {"name": "A red room", "desc": "This room is fancy. It's red!",
-             "exits": { "north": "A green room", "west": "A white room" },
-             "items": ["rose"]
-            }
-           ]
-}
+    game_map = load_map(sys.argv[1])
+#     game_map = { "start": "A white room",
+#   "rooms": [
+#             {"name": "A white room", "desc": "You are in a simple room with white walls.",
+#              "exits": { "north": "A blue room", "east": "A red room" }
+#             }
+#            ,
+#             {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
+#              "exits": { "east": "A green room", "south": "A white room" }
+#             }
+#            ,
+#             {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
+#              "exits": { "west": "A blue room", "south": "A red room" },
+#              "items": []
+#             }
+#            ,
+#             {"name": "A red room", "desc": "This room is fancy. It's red!",
+#              "exits": { "north": "A green room", "west": "A white room" },
+#              "items": ["rose"]
+#             }
+#            ]
+# }
     game_state = GameState(game_map)
     print(look(game_state))
     
@@ -201,9 +201,6 @@ def main():
         try:
             command = input("What would you like to do? ")
             output = process_command(command, game_state)
-            if output == "quit":
-              print("Goodbye!")
-              break  # Break out of the loop to end the game
             print(output)
         except EOFError:
             print("Use 'quit' to exit.")
