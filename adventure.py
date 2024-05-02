@@ -95,7 +95,8 @@ def process_command(command, game_state):
         return function_dict[cmd](function_dict)
     elif cmd == "quit":
         print("Goodbye!")  # Output goodbye message to STDOUT
-        sys.exit(0)  # Exit the program normally
+        #sys.exit(0)  # Exit the program normally
+        return
     else:
         return "Use 'quit' to exit."
 
@@ -220,7 +221,8 @@ def main():
     except KeyboardInterrupt:
         # print("\nGame interrupted.", file=sys.stderr)
         # print("Goodbye!")  # Output goodbye message to STDOUT
-        sys.exit(0)  # Exit the program normally
+        #sys.exit(0)  # Exit the program normally
+        return
 
 if __name__ == "__main__":
     main()
