@@ -1,4 +1,4 @@
-# version 1
+# version 2
 import sys
 import json
 
@@ -94,7 +94,8 @@ def process_command(command, game_state):
     elif cmd == "help":
         return function_dict[cmd](function_dict)
     elif cmd == "quit":
-        sys.exit("Goodbye!")
+        print("Goodbye!", file=sys.stderr)
+        sys.exit(0)
     else:
         return "Use 'quit' to exit."
 
@@ -183,18 +184,41 @@ def main():
             return
         
         game_map = load_map(sys.argv[1])
+#         game_map = { "start": "A white room",
+#   "rooms": [
+#             {"name": "A white room", "desc": "You are in a simple room with white walls.",
+#              "exits": { "north": "A blue room", "east": "A red room" }
+#             }
+#            ,
+#             {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
+#              "exits": { "east": "A green room", "south": "A white room" }
+#             }
+#            ,
+#             {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
+#              "exits": { "west": "A blue room", "south": "A red room" },
+#              "items": []
+#             }
+#            ,
+#             {"name": "A red room", "desc": "This room is fancy. It's red!",
+#              "exits": { "north": "A green room", "west": "A white room" },
+#              "items": ["rose"]
+#             }
+#            ]
+# }
         game_state = GameState(game_map)
-        output = look(game_state)
-        print(output)
+        print(look(game_state))
         
         while True:
-            command = input("What would you like to do? ")
-            output = process_command(command, game_state)
-            print(output)
-
+            try:
+                command = input("What would you like to do? ")
+                if command == "":
+                    raise EOFError
+                output = process_command(command, game_state)
+                print(output)
+            except EOFError:
+                print("Use 'quit' to exit.")
     except KeyboardInterrupt:
-        print("\nGame interrupted. Goodbye!")
-
+        print("\nGame interrupted.", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
