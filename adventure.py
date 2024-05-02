@@ -94,8 +94,8 @@ def process_command(command, game_state):
     elif cmd == "help":
         return function_dict[cmd](function_dict)
     elif cmd == "quit":
-        print("Goodbye!", file=sys.stderr)
-        sys.exit(0)
+        print("Goodbye!")  # Output goodbye message to STDOUT
+        sys.exit(0)  # Exit the program normally
     else:
         return "Use 'quit' to exit."
 
