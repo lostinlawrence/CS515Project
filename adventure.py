@@ -1,212 +1,176 @@
-# version 3
-import sys
+# version 4
 import json
+import sys
+def load_map(map_file):
+    with open(map_file, 'r') as f:
+        map_data = json.load(f)
+    return map_data
 
-def load_map(filename):
-    """Load the game map from a file and validate it."""
-    try:
-        with open(filename, 'r') as file:
-            game_map = json.load(file)
-        validate_map(game_map)
-        return game_map
-    except FileNotFoundError:
-        print("Error: Map file not found.", file=sys.stderr)
-        sys.exit(1)
 
-def validate_map(game_map):
-    """Validate the structure and content of the game map."""
-    if "start" not in game_map or "rooms" not in game_map:
-        print("Error: Map is missing required 'start' or 'rooms' keys.", file=sys.stderr)
-        sys.exit(1)
+class Room:
+    def __init__(self, name, desc, exits, items=None, locked_exits=None):
+        self.name = name
+        self.desc = desc
+        self.exits = exits
+        self.items = items if items else []
+        self.locked_exits = locked_exits if locked_exits else {}
+
+    def unlock_exit(self, direction, required_item):
+        self.locked_exits.pop(direction, None)
+        print(f"The {direction} exit is now unlocked with {required_item}.")
+
+    def lock_exit(self, direction, required_item):
+        self.locked_exits[direction] = required_item
+        print(f"The {direction} exit is now locked and requires {required_item} to unlock.")
+
+    def __str__(self):
+        exits_str = ' '.join(self.exits.keys())
+        items_str = ', '.join(self.items) if self.items else "None"
+        return f"{self.name}\n\n{self.desc}\n\nItems: {items_str}\n\nExists: {exits_str}\n"
     
-    room_names = set()
-    for room in game_map["rooms"]:
-        if "name" not in room or "desc" not in room or "exits" not in room:
-            print("Error: One or more rooms are missing required fields.", file=sys.stderr)
-            sys.exit(1)
-        if not isinstance(room["name"], str) or not isinstance(room["desc"], str) or not isinstance(room["exits"], dict):
-            print("Error: Incorrect data types in room definitions.", file=sys.stderr)
-            sys.exit(1)
-        if room["name"] in room_names:
-            print("Error: Duplicate room name found.", file=sys.stderr)
-            sys.exit(1)
-        room_names.add(room["name"])
-        for exit_room in room["exits"].values():
-            if exit_room not in room_names:
-                # Allow forward references
-                continue
 
-    # Validate if all exits are correct at the end of the loop
-    for room in game_map["rooms"]:
-        for exit_room in room["exits"].values():
-            if exit_room not in room_names:
-                print(f"Error: Exit '{exit_room}' points to a non-existing room.", file=sys.stderr)
-                sys.exit(1)
-
-
-class GameState:
-    """Class to hold the state of the game."""
-    def __init__(self, game_map):
-        self.game_map = game_map
-        self.current_room = game_map["start"]
+class Player:
+    def __init__(self):
+        self.current_room = None
         self.inventory = []
 
-    def get_current_room(self):
-        """Retrieve the current room based on the player's location."""
-        return next((room for room in self.game_map["rooms"] if room["name"] == self.current_room), None)
+    def describe_room(self):
+        print(f'> {self.current_room.name}\n\n{self.current_room.desc}\n')
+        exits_str = ' '.join(self.current_room.exits.keys())
+        items_str = ', '.join(self.current_room.items) if self.current_room.items else "None"
 
-def process_command(command, game_state):
+        if(self.current_room.items):
+            print(f'Items: {items_str}\n')
+        print(f'Exits: {exits_str}\n')
 
-    # This is a dictionary of fuctions. When a verb or function is added, it should be added in the dictionary.
-    # Below there is a handle_help function that will print all the keys of this dictionary.
-    function_dict = {"go":handle_go,"east":handle_direction,"west":handle_direction,
-                     "south":handle_direction,"north":handle_direction,"look":handle_look,
-                     "get":handle_get,"drop":handle_drop,"inventory":handle_inventory,"help":handle_help,
-                     "quit":None
-                     }
-    words = command.strip().lower().split()
-    if not words:
-        return "You need to enter a command."
+    def go(self, direction):
+        if direction in ["n", "s", "e", "w", "u", "d"]:
+            direction = {"n": "north", "s": "south", "e": "east", "w": "west", "u": "up", "d": "down"}[direction]
+        
+        if direction in self.current_room.exits:
+            if direction in self.current_room.locked_exits:
+                required_item = self.current_room.locked_exits[direction]
+                if required_item in self.inventory:
+                    print(f"You unlock the {direction} exit with {required_item}.")
+                    self.current_room.unlock_exit(direction, required_item)
+                else:
+                    print(f"The {direction} exit is locked. You need {required_item} to unlock it.")
+                    return False
+            self.current_room = self.current_room.exits[direction]
+            print(f"You go {direction}.")
+            print()
+            return True
+        else:
+            print(f"There's no way to go {direction}.")
+            return False
 
-    cmd = words[0]
-    if cmd == "quit":
-        return "quit"
-    elif cmd == "go":
-        return function_dict[cmd](words[1:], game_state)
-    elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
-        return function_dict[cmd](words[0], game_state)
-    elif cmd == "look":
-        return function_dict[cmd](game_state)
-    elif cmd == "get":
-        return function_dict[cmd](words[1:], game_state)
-    elif cmd == "drop":
-        return function_dict[cmd](words[1:], game_state)
-    elif cmd == "inventory":
-        return function_dict[cmd](game_state)
-    elif cmd == "help":
-        return function_dict[cmd](function_dict)       
-    else:
-        return "Use 'quit' to exit."
+    def look(self):
+        self.describe_room()
 
-def handle_go(direction, game_state):#direction is a list here with only one element
-    if len(direction) == 0:
-        return "Sorry, you need to 'go' somewhere."
-    room = game_state.get_current_room()
-    if direction[0] in room["exits"]:
-        game_state.current_room = room["exits"][direction[0]]
-        print(f"You go {direction[0]}.\n")
-        return look(game_state)
-    else:
-        return f"There's no way to go {direction[0]}."
+    def get(self, item):
+        if item in self.current_room.items:
+            self.current_room.items.remove(item)
+            self.inventory.append(item)
+            print(f"You pick up the {item}.")
+        else:
+            print(f"There's no {item} anywhere.")
 
-# This is an extension to convert direction to a verb.
-# This method take in directions including east, west, south and north
-def handle_direction(direction, game_state):#direction在这里是一个string
-    room = game_state.get_current_room()
-    if direction in room["exits"]:
-        game_state.current_room = room["exits"][direction]
-        print(f"You go {direction}.\n")
-        return look(game_state)
-    else:
-        return f"There's no way to go {direction}."
+    def show_inventory(self):
+        if not self.inventory:
+            print("You're not carrying anything.")
+        else:
+            print("Inventory:")
+            for item in self.inventory:
+                print(f" {item}")
 
-def handle_look(game_state):
-    return look(game_state)
+    def drop(self, item):
+        if item in self.inventory:
+            self.inventory.remove(item)
+            self.current_room.items.append(item)
+            print(f"You drop the {item}")
+        else:
+            print(f"You don't have {item} in your inventory.")
 
-def look(game_state):
-    room = game_state.get_current_room()
-    if "items" in room and room["items"]:
-        items = " ".join(room.get("items", []))
-        exits = " ".join(room["exits"].keys())
-        return f"> {room['name']}\n\n{room['desc']}\n\nItems: {items}\n\nExits: {exits}\n"
-    else:
-        exits = " ".join(room["exits"].keys())
-        return f"> {room['name']}\n\n{room['desc']}\n\nExits: {exits}\n"
+    def help(self):
+        print("You can run the following commands:")
+        print("  go ...")
+        print("  get ...")
+        print("  look")
+        print("  inventory")
+        print("  quit")
+        print("  help")
+        print("  drop")
+
+# print(sys.argv)
+map_data = load_map(sys.argv[1])
+
+rooms = {}  # 用于存储房间对象的字典
 
 
-def handle_get(items, game_state):#items here is a list
-    if not items:
-        return "Sorry, you need to 'get' something."
-    item = items[0]# To take out the only element from list items and pass it to variable item
-    room = game_state.get_current_room()#room here is a dictionary
-    if "items" in room and item in room["items"]:
-        room["items"].remove(item)
-        game_state.inventory.append(item)
-        return f"You pick up the {item}."
-    else:
-        return f"There's no {item} anywhere."
+# 创建房间对象并添加到字典中
+for room_data in map_data["rooms"]:
+    room = Room(room_data["name"], room_data["desc"], room_data["exits"], room_data.get("items", []))
+    rooms[room_data["name"]] = room
 
-# This is an extension to drop items.
-def handle_drop(items, game_state):
-    if not items:
-        return "Sorry, you need to 'drop' something."
-    item = items[0]
-    room = game_state.get_current_room()
-    if "items" in room and item in game_state.inventory:
-        game_state.inventory.remove(item)
-        room["items"].append(item)
-        return f"You drop the {item}."
-    else:
-        return f"You don't have {item} or you can't drop {item} in this room"
+# 连接房间
+for room_data in map_data["rooms"]:
+    current_room = rooms[room_data["name"]]
+    # print(rooms)
+    for direction, room_name in room_data["exits"].items():
+        
+        # print(direction,room_name)
+        current_room.exits[direction] = rooms[room_name]
 
-def handle_inventory(game_state):
-    if game_state.inventory:
-        return "Inventory:\n  " + "\n  ".join(game_state.inventory)
-    else:
-        return "You're not carrying anything."
 
-# This is an extension to help verb, it will print all possible verbs.
-# All the verbs are stored in a dictionary, when the help function is call, it will print all the dict keys
-def handle_help(function_dict):
-    list1 = list(function_dict.keys())
-    s = ""
-    s = s + "You can run the following commands:" + "\n"
-    for i in list1:
-        s = s + i +"\n"
-    s = s.strip()
-    return s
+# Initialize Player
+player = Player()
+# 设置玩家初始房间
+player.current_room = rooms[map_data["start"]]
 
-def main():
-    """Main game loop."""
-    # if len(sys.argv) != 2:
-    #     print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
-    #     return
-    
-    # game_map = load_map(sys.argv[1])
-    game_map = { "start": "A white room",
-  "rooms": [
-            {"name": "A white room", "desc": "You are in a simple room with white walls.",
-             "exits": { "north": "A blue room", "east": "A red room" }
-            }
-           ,
-            {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
-             "exits": { "east": "A green room", "south": "A white room" }
-            }
-           ,
-            {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
-             "exits": { "west": "A blue room", "south": "A red room" },
-             "items": []
-            }
-           ,
-            {"name": "A red room", "desc": "This room is fancy. It's red!",
-             "exits": { "north": "A green room", "west": "A white room" },
-             "items": ["rose"]
-            }
-           ]
-}
-    game_state = GameState(game_map)
-    print(look(game_state))
-    
-    while True:
-        try:
-            command = input("What would you like to do? ")
-            output = process_command(command, game_state)
-            if output == "quit":
-              print("Goodbye!")
-              break  # Break out of the loop to end the game
-            print(output)
-        except EOFError:
-            print("Use 'quit' to exit.")
-
-if __name__ == "__main__":
-    main()
+player.describe_room()
+while True:
+    try:
+        action = input("What would you like to do? ").strip().lower().split()
+        if not action:
+            continue
+        verb = action[0]
+        if verb == "go":
+            if len(action) < 2:
+                print("Sorry, you need to 'go' somewhere.")
+                continue
+            direction = action[1]
+            if direction in player.current_room.exits:
+                if player.go(direction):
+                    player.look()
+            else:
+                matches = [dire for dire in player.current_room.exits if direction in dire]
+                if matches:
+                    print(f"Did you want to go {matches[0]} or {matches[1]}?")
+                else:
+                    print(f"There's no way to go {direction}.")
+        elif verb == "look":
+            player.look()
+        elif verb == "get":
+            if len(action) < 2:
+                print("Sorry, you need to 'get' something.")
+                continue
+            item = action[1]
+            player.get(item)
+        elif verb == "inventory":
+            player.show_inventory()
+        elif verb == "quit":
+            print("Goodbye!")
+            break
+        elif verb == "help":
+            player.help()
+        elif verb == "drop":
+            if len(action) < 2:
+                print("Sorry, you need to drop something")
+                continue
+            item = action[1]
+            player.drop(item)
+            # player.look()
+        else:
+            print("I don't understand that command.")
+    except EOFError:
+        print("Use 'quit' to exit.")
