@@ -218,7 +218,9 @@ def main():
             except EOFError:
                 print("Use 'quit' to exit.")
     except KeyboardInterrupt:
-        print("\nGame interrupted.", file=sys.stderr)
+        # print("\nGame interrupted.", file=sys.stderr)
+        # print("Goodbye!")  # Output goodbye message to STDOUT
+        sys.exit(0)  # Exit the program normally
 
 if __name__ == "__main__":
     main()
