@@ -74,7 +74,7 @@ def process_command(command, game_state):
     cmd = words[0]
     if cmd == "quit":
         print("Goodbye!")
-        sys.exit(0)
+        return "quit"
     elif cmd == "go":
         return function_dict[cmd](words[1:], game_state)
     elif cmd == "east" or cmd == "west" or cmd == "south" or cmd == "north" or cmd == "southeast" or cmd == "southwest" or cmd == "northeast" or cmd == "northwest":
@@ -200,6 +200,8 @@ def main():
         try:
             command = input("What would you like to do? ")
             output = process_command(command, game_state)
+            if output == "quit":
+              break
             print(output)
         except EOFError:
             print("Use 'quit' to exit.")
