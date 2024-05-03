@@ -176,7 +176,7 @@ def handle_help(function_dict):
 def main():
     """Main game loop."""
     if len(sys.argv) != 2:
-        print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
+        print("Usage: python3 adventure.py [map filename]")
         return
 
     game_map = load_map(sys.argv[1])
