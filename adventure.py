@@ -85,18 +85,10 @@ def process_command(command, game_state):
     elif cmd == "look":
         return function_dict[cmd](game_state)
     elif cmd == "get":
-        s = ''
-        list1 = words[1:]
-        for i in list1:
-          s = s + i
-        s = s.strip()
+        s = command[3:].strip()
         return function_dict[cmd](s, game_state)
     elif cmd == "drop":
-        s = ''
-        list1 = words[1:]
-        for i in list1:
-          s = s + i
-        s = s.strip()
+        s = command[3:].strip()
         return function_dict[cmd](s, game_state)
     elif cmd == "inventory":
         return function_dict[cmd](game_state)
