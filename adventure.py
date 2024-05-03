@@ -1,4 +1,4 @@
-# version 3
+# version 4
 import sys
 import json
 
@@ -10,7 +10,10 @@ def load_map(filename):
         validate_map(game_map)
         return game_map
     except FileNotFoundError:
-        print("Error: Map file not found.", file=sys.stderr)
+        sys.stderr.write("Error: Map file not found.\n")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        sys.stderr.write("Error: Map file is not valid JSON.\n")
         sys.exit(1)
 
 def validate_map(game_map):
@@ -195,14 +198,16 @@ def main():
 # }
     game_state = GameState(game_map)
     print(look(game_state))
+    running = True
 
-    while True:
+    while running:
         try:
             command = input("What would you like to do? ")
             output = process_command(command, game_state)
             if output == "quit":
-              break
-            print(output)
+              running = False
+            else:
+              print(output)
         except EOFError:
             print("Use 'quit' to exit.")
 
