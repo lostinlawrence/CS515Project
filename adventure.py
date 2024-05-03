@@ -19,19 +19,19 @@ def load_map(filename):
 def validate_map(game_map):
     """Validate the structure and content of the game map."""
     if "start" not in game_map or "rooms" not in game_map:
-        print("Error: Map is missing required 'start' or 'rooms' keys.", file=sys.stderr)
+        sys.stderr.write("Error: Invalid map configuration.\n")
         sys.exit(1)
 
     room_names = set()
     for room in game_map["rooms"]:
         if "name" not in room or "desc" not in room or "exits" not in room:
-            print("Error: One or more rooms are missing required fields.", file=sys.stderr)
+            sys.stderr.write("Error: One or more rooms are missing required fields.\n")
             sys.exit(1)
         if not isinstance(room["name"], str) or not isinstance(room["desc"], str) or not isinstance(room["exits"], dict):
-            print("Error: Incorrect data types in room definitions.", file=sys.stderr)
+            sys.stderr.write("Error: Incorrect data types in room definitions.\n")
             sys.exit(1)
         if room["name"] in room_names:
-            print("Error: Duplicate room name found.", file=sys.stderr)
+            sys.stderr.write("Error: Duplicate room name found.\n")
             sys.exit(1)
         room_names.add(room["name"])
         for exit_room in room["exits"].values():
@@ -43,7 +43,7 @@ def validate_map(game_map):
     for room in game_map["rooms"]:
         for exit_room in room["exits"].values():
             if exit_room not in room_names:
-                print(f"Error: Exit '{exit_room}' points to a non-existing room.", file=sys.stderr)
+                sys.stderr.write(f"Error: Exit '{exit_room}' points to a non-existing room.\n")
                 sys.exit(1)
 
 
