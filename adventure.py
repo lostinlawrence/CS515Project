@@ -1,22 +1,17 @@
-# version 4
+# version 3
 import sys
 import json
 
 def load_map(filename):
+    """Load the game map from a file and validate it."""
     try:
         with open(filename, 'r') as file:
             game_map = json.load(file)
+        validate_map(game_map)
+        return game_map
     except FileNotFoundError:
-        sys.stderr.write("Error: Map file not found.\n")
+        print("Error: Map file not found.", file=sys.stderr)
         sys.exit(1)
-    except json.JSONDecodeError:
-        sys.stderr.write("Error: Map file is not valid JSON.\n")
-        sys.exit(1)
-    
-    if not validate_map(game_map):
-        sys.stderr.write("Error: Invalid map configuration.\n")
-        sys.exit(1)
-    return game_map
 
 def validate_map(game_map):
     """Validate the structure and content of the game map."""
