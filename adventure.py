@@ -150,7 +150,7 @@ def handle_get(items, game_state):#items here is a string
         game_state.inventory.append(items)
         return f"You pick up the {items}."
     else:
-        return f"There's no {item} anywhere."
+        return f"There's no {items} anywhere."
 
 # This is an extension to drop items.
 def handle_drop(items, game_state):
