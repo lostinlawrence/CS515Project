@@ -88,7 +88,7 @@ def process_command(command, game_state):
         s = command[3:].strip()
         return function_dict[cmd](s, game_state)
     elif cmd == "drop":
-        s = command[3:].strip()
+        s = command[4:].strip()
         return function_dict[cmd](s, game_state)
     elif cmd == "inventory":
         return function_dict[cmd](game_state)
@@ -148,7 +148,6 @@ def handle_get(items, game_state):#items here is a string
 def handle_drop(items, game_state):
     if items == '':
         return "Sorry, you need to 'drop' something."
-    
     room = game_state.get_current_room()
     if "items" in room and items in game_state.inventory:
         game_state.inventory.remove(items)
