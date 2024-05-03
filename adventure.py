@@ -85,9 +85,19 @@ def process_command(command, game_state):
     elif cmd == "look":
         return function_dict[cmd](game_state)
     elif cmd == "get":
-        return function_dict[cmd](words[1:], game_state)
+        s = ''
+        list1 = words[1:]
+        for i in list1:
+          s = s + i
+        s = s.strip()
+        return function_dict[cmd](s, game_state)
     elif cmd == "drop":
-        return function_dict[cmd](words[1:], game_state)
+        s = ''
+        list1 = words[1:]
+        for i in list1:
+          s = s + i
+        s = s.strip()
+        return function_dict[cmd](s, game_state)
     elif cmd == "inventory":
         return function_dict[cmd](game_state)
     elif cmd == "help":
@@ -131,30 +141,29 @@ def look(game_state):
         return f"> {room['name']}\n\n{room['desc']}\n\nExits: {exits}\n"
 
 
-def handle_get(items, game_state):#items here is a list
-    if not items:
+def handle_get(items, game_state):#items here is a string
+    if items == '':
         return "Sorry, you need to 'get' something."
-    item = items[0]# To take out the only element from list items and pass it to variable item
     room = game_state.get_current_room()#room here is a dictionary
-    if "items" in room and item in room["items"]:
-        room["items"].remove(item)
-        game_state.inventory.append(item)
-        return f"You pick up the {item}."
+    if "items" in room and items in room["items"]:
+        room["items"].remove(items)
+        game_state.inventory.append(items)
+        return f"You pick up the {items}."
     else:
         return f"There's no {item} anywhere."
 
 # This is an extension to drop items.
 def handle_drop(items, game_state):
-    if not items:
+    if items = '':
         return "Sorry, you need to 'drop' something."
-    item = items[0]
+    
     room = game_state.get_current_room()
-    if "items" in room and item in game_state.inventory:
-        game_state.inventory.remove(item)
-        room["items"].append(item)
-        return f"You drop the {item}."
+    if "items" in room and items in game_state.inventory:
+        game_state.inventory.remove(items)
+        room["items"].append(items)
+        return f"You drop the {items}."
     else:
-        return f"You don't have {item} or you can't drop {item} in this room"
+        return f"You don't have {items} or you can't drop {items} in this room"
 
 def handle_inventory(game_state):
     if game_state.inventory:
