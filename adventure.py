@@ -201,15 +201,13 @@ def main():
     running = True
 
     while running:
-        try:
-            command = input("What would you like to do? ")
-            output = process_command(command, game_state)
-            if output == "quit":
-              running = False
-            else:
-              print(output)
-        except EOFError:
-            print("Use 'quit' to exit.")
+      command = input("What would you like to do? ")
+      output = process_command(command, game_state)
+      if output == "quit":
+        running = False
+      else:
+        print(output)
+
 
 if __name__ == "__main__":
     main()
