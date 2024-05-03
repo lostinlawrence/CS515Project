@@ -1,24 +1,29 @@
-# version 3
+# version 4
 import sys
 import json
 
 def load_map(filename):
-    """Load the game map from a file and validate it."""
     try:
         with open(filename, 'r') as file:
             game_map = json.load(file)
-        validate_map(game_map)
-        return game_map
     except FileNotFoundError:
-        print("Error: Map file not found.", file=sys.stderr)
+        sys.stderr.write("Error: Map file not found.\n")
         sys.exit(1)
+    except json.JSONDecodeError:
+        sys.stderr.write("Error: Map file is not valid JSON.\n")
+        sys.exit(1)
+    
+    if not validate_map(game_map):
+        sys.stderr.write("Error: Invalid map configuration.\n")
+        sys.exit(1)
+    return game_map
 
 def validate_map(game_map):
     """Validate the structure and content of the game map."""
     if "start" not in game_map or "rooms" not in game_map:
         print("Error: Map is missing required 'start' or 'rooms' keys.", file=sys.stderr)
         sys.exit(1)
-    
+
     room_names = set()
     for room in game_map["rooms"]:
         if "name" not in room or "desc" not in room or "exits" not in room:
@@ -88,7 +93,7 @@ def process_command(command, game_state):
     elif cmd == "inventory":
         return function_dict[cmd](game_state)
     elif cmd == "help":
-        return function_dict[cmd](function_dict)       
+        return function_dict[cmd](function_dict)
     else:
         return "Use 'quit' to exit."
 
@@ -175,7 +180,7 @@ def main():
     if len(sys.argv) != 2:
         print("Usage: python3 adventure.py [map filename]", file=sys.stderr)
         return
-    
+
     game_map = load_map(sys.argv[1])
 #     game_map = { "start": "A white room",
 #   "rooms": [
@@ -195,7 +200,7 @@ def main():
 # }
     game_state = GameState(game_map)
     print(look(game_state))
-    
+
     while True:
         try:
             command = input("What would you like to do? ")
