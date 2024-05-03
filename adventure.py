@@ -154,7 +154,7 @@ def handle_get(items, game_state):#items here is a string
 
 # This is an extension to drop items.
 def handle_drop(items, game_state):
-    if items = '':
+    if items == '':
         return "Sorry, you need to 'drop' something."
     
     room = game_state.get_current_room()
