@@ -129,7 +129,7 @@ def handle_look(game_state):
 def look(game_state):
     room = game_state.get_current_room()
     if "items" in room and room["items"]:
-        items = " ".join(room.get("items", []))
+        items = ",".join(room.get("items", []))
         exits = " ".join(room["exits"].keys())
         return f"> {room['name']}\n\n{room['desc']}\n\nItems: {items}\n\nExits: {exits}\n"
     else:
@@ -178,28 +178,27 @@ def handle_help(function_dict):
     return s
 
 def main():
-    """Main game loop."""
-    if len(sys.argv) != 2:
-        print("Usage: python3 adventure.py [map filename]")
-        return
+    # """Main game loop."""
+    # if len(sys.argv) != 2:
+    #     print("Usage: python3 adventure.py [map filename]")
 
-    game_map = load_map(sys.argv[1])
-#     game_map = { "start": "A white room",
-#   "rooms": [
-#             {"name": "A white room", "desc": "You are in a simple room with white walls.",
-#              "exits": { "north": "A blue room", "northwest": "A green room" }
-#             }
-#            ,
-#             {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
-#              "exits": { "west": "A green room", "south": "A white room" }
-#             }
-#            ,
-#             {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
-#              "exits": { "east": "A blue room", "southeast": "A white room" },
-#              "items": ["banana", "bandana", "bellows", "deck of cards"]
-#             }
-#            ]
-# }
+    # game_map = load_map(sys.argv[1])
+    game_map = { "start": "A white room",
+  "rooms": [
+            {"name": "A white room", "desc": "You are in a simple room with white walls.",
+             "exits": { "north": "A blue room", "northwest": "A green room" }
+            }
+           ,
+            {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
+             "exits": { "west": "A green room", "south": "A white room" }
+            }
+           ,
+            {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
+             "exits": { "east": "A blue room", "southeast": "A white room" },
+             "items": ["banana", "bandana", "bellows", "deck of cards"]
+            }
+           ]
+}
     game_state = GameState(game_map)
     print(look(game_state))
     running = True
