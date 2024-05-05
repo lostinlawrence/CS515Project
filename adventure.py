@@ -178,27 +178,27 @@ def handle_help(function_dict):
     return s
 
 def main():
-    # """Main game loop."""
-    # if len(sys.argv) != 2:
-    #     print("Usage: python3 adventure.py [map filename]")
+    """Main game loop."""
+    if len(sys.argv) != 2:
+        print("Usage: python3 adventure.py [map filename]")
 
-    # game_map = load_map(sys.argv[1])
-    game_map = { "start": "A white room",
-  "rooms": [
-            {"name": "A white room", "desc": "You are in a simple room with white walls.",
-             "exits": { "north": "A blue room", "northwest": "A green room" }
-            }
-           ,
-            {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
-             "exits": { "west": "A green room", "south": "A white room" }
-            }
-           ,
-            {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
-             "exits": { "east": "A blue room", "southeast": "A white room" },
-             "items": ["banana", "bandana", "bellows", "deck of cards"]
-            }
-           ]
-}
+    game_map = load_map(sys.argv[1])
+#     game_map = { "start": "A white room",
+#   "rooms": [
+#             {"name": "A white room", "desc": "You are in a simple room with white walls.",
+#              "exits": { "north": "A blue room", "northwest": "A green room" }
+#             }
+#            ,
+#             {"name": "A blue room", "desc": "This room is simple, too, but with blue walls.",
+#              "exits": { "west": "A green room", "south": "A white room" }
+#             }
+#            ,
+#             {"name": "A green room", "desc": "You are in a simple room, with bright green walls.",
+#              "exits": { "east": "A blue room", "southeast": "A white room" },
+#              "items": ["banana", "bandana", "bellows", "deck of cards"]
+#             }
+#            ]
+# }
     game_state = GameState(game_map)
     print(look(game_state))
     running = True
