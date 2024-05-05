@@ -129,7 +129,7 @@ def handle_look(game_state):
 def look(game_state):
     room = game_state.get_current_room()
     if "items" in room and room["items"]:
-        items = ",".join(room.get("items", []))
+        items = ", ".join(room.get("items", []))
         exits = " ".join(room["exits"].keys())
         return f"> {room['name']}\n\n{room['desc']}\n\nItems: {items}\n\nExits: {exits}\n"
     else:
